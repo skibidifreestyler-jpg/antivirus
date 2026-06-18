@@ -188,7 +188,10 @@ def save_cache(cache):
 def vt_lookup(file_hash):
 
     if not VT_API_KEY:
-        return None
+        return {
+            "status": "disabled",
+            "message": "VirusTotal API key not configured"
+        }
 
     cache = load_cache()
 
@@ -206,19 +209,56 @@ def vt_lookup(file_hash):
         response = requests.get(
             url,
             headers=headers,
-            timeout=10
+            timeout=15
         )
-        print("VT RESPONSE:", response.json())
-        
+
+        print("VT STATUS:", response.status_code)
+        print("VT RESPONSE:", response.text[:1000])
+
+        # -----------------------------
+        # HASH NOT FOUND
+        # -----------------------------
+
+        if response.status_code == 404:
+
+            result = {
+                "status": "unknown",
+                "message": "Hash not found in VirusTotal database",
+                "malicious": 0,
+                "suspicious": 0,
+                "harmless": 0
+            }
+
+            cache[file_hash] = result
+            save_cache(cache)
+
+            return result
+
+        # -----------------------------
+        # API ERROR
+        # -----------------------------
 
         if response.status_code != 200:
-            return None
+
+            return {
+                "status": "error",
+                "message": f"VirusTotal returned HTTP {response.status_code}",
+                "malicious": 0,
+                "suspicious": 0,
+                "harmless": 0
+            }
+
+        # -----------------------------
+        # SUCCESS
+        # -----------------------------
 
         data = response.json()
 
         stats = data["data"]["attributes"]["last_analysis_stats"]
 
         result = {
+            "status": "found",
+            "message": "Hash found in VirusTotal",
             "malicious": stats.get("malicious", 0),
             "suspicious": stats.get("suspicious", 0),
             "harmless": stats.get("harmless", 0)
@@ -230,9 +270,17 @@ def vt_lookup(file_hash):
 
         return result
 
-    except:
-        return None
+    except Exception as e:
 
+        print("VT ERROR:", str(e))
+
+        return {
+            "status": "error",
+            "message": str(e),
+            "malicious": 0,
+            "suspicious": 0,
+            "harmless": 0
+        }
 
 # =====================================================
 # YARA
@@ -357,7 +405,11 @@ def confidence_score(score, yara_hits, vt_result):
 
 def get_risk(score, entropy, vt_result):
 
-    if vt_result and vt_result.get("malicious", 0) >= 5:
+    if (
+        vt_result
+        and vt_result.get("status") == "found"
+        and vt_result.get("malicious", 0) >= 5
+    ):
         return "critical"
 
     if score >= 20 or entropy > 7.5:
