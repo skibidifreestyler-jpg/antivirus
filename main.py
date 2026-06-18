@@ -450,7 +450,23 @@ def scan():
     if ips:
         score += 5
 
-    score += len(yara_matches) * 5
+    YARA_SEVERITY = {
+    "EncodedPowerShell": 15,
+    "JavaScriptObfuscation": 8,
+    "SuspiciousDownloader": 10,
+    "CredentialTheft": 12,
+    "KeyloggerIndicators": 15,
+    "RATIndicators": 15,
+    "PersistenceMechanism": 8,
+    "CryptoMiner": 10,
+    "RansomwareIndicators": 20,
+    "AntiAnalysis": 10,
+    "EmbeddedExecutable": 5,
+    "SuspiciousPython": 8,
+    "SuspiciousHTML": 8
+}
+    for match in yara_matches:
+    score += YARA_SEVERITY.get(match, 5)
 
     risk_level = get_risk(
         score,
