@@ -1,281 +1,344 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CyberShield Scanner</title>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{
-font-family:system-ui,sans-serif;
-background:linear-gradient(135deg,#0f172a,#111827,#020617);
-color:#fff;
-min-height:100vh;
-display:flex;
-justify-content:center;
-align-items:center;
-padding:30px;
-}
-.card{
-width:100%;
-max-width:850px;
-background:#111827;
-border:1px solid #1e293b;
-border-radius:20px;
-padding:30px;
-box-shadow:0 0 40px rgba(0,212,255,.15);
-}
-h1{font-size:32px}
-.subtitle{color:#94a3b8;margin-top:8px;margin-bottom:24px}
-#dropzone{
-border:2px dashed #00d4ff;
-border-radius:16px;
-padding:50px;
-text-align:center;
-cursor:pointer;
-transition:.25s;
-background:#0b1220;
-}
-#dropzone:hover,#dropzone.dragover{
-background:#13203a;
-transform:translateY(-2px);
-}
-#fileInput{display:none}
-#results{display:none;margin-top:25px}
-.status-card{
-padding:18px;
-border-radius:14px;
-display:flex;
-gap:15px;
-margin-bottom:20px;
-}
-.clean{background:#052e16}
-.low{background:#3f3200}
-.medium{background:#4a2b00}
-.high{background:#4c0519}
-.critical{background:#7f1d1d}
-.metrics{
-display:grid;
-grid-template-columns:repeat(4,1fr);
-gap:12px;
-margin:20px 0;
-}
-.metric{
-background:#0b1220;
-padding:15px;
-border-radius:12px;
-text-align:center;
-}
-.label{
-font-size:11px;
-color:#94a3b8;
-text-transform:uppercase;
-}
-.value{
-font-size:24px;
-font-weight:bold;
-margin-top:5px;
-}
-.risk-container{
-height:16px;
-background:#0b1220;
-border-radius:999px;
-overflow:hidden;
-margin:15px 0;
-}
-#riskBar{
-height:100%;
-width:0%;
-transition:.7s;
-}
-.section-title{
-margin:20px 0 10px;
-color:#00d4ff;
-font-size:13px;
-letter-spacing:1px;
-text-transform:uppercase;
-}
-.flag-item{
-padding:10px;
-border-radius:10px;
-margin-bottom:8px;
-font-family:monospace;
-}
-.high-risk{background:#450a0a}
-.medium-risk{background:#78350f}
-.low-risk{background:#713f12}
-.pattern{background:#1e1b4b}
-.badge{
-padding:3px 8px;
-border-radius:999px;
-font-size:10px;
-font-weight:bold;
-margin-right:8px;
-}
-.badge.high{background:#ef4444}
-.badge.medium{background:#f97316}
-.badge.low{background:#eab308;color:#000}
-.timeline .step{
-padding:10px;
-margin-bottom:8px;
-border-left:3px solid #00d4ff;
-background:#0b1220;
-border-radius:8px;
-}
-.hash-box{
-background:#0b1220;
-padding:12px;
-border-radius:10px;
-font-family:monospace;
-word-break:break-all;
-margin-top:20px;
-}
-.reset{
-width:100%;
-margin-top:20px;
-padding:12px;
-border:none;
-border-radius:12px;
-background:#00d4ff;
-cursor:pointer;
-font-weight:bold;
-}
-.warning{
-background:#78350f;
-padding:12px;
-border-radius:10px;
-margin-top:15px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CyberShield Malware Analysis</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<div class="card">
-<h1>🛡 CyberShield Scanner</h1>
-<p class="subtitle">Advanced threat analysis dashboard</p>
 
-<div id="dropzone" onclick="fileInput.click()">
-<h2>Drop File Here</h2>
-<p>TXT • JS • PY • HTML</p>
-<input id="fileInput" type="file" accept=".txt,.js,.py,.html">
+<div class="background-grid"></div>
+
+<div class="container">
+
+    <header>
+        <div class="logo-section">
+            <h1>🛡 CyberShield</h1>
+            <p>Advanced Malware Analysis Platform</p>
+        </div>
+
+        <div class="status-pill">
+            STATIC ANALYSIS ENGINE
+        </div>
+    </header>
+
+    <!-- Upload Card -->
+
+    <section class="upload-card">
+
+        <div id="dropzone">
+
+            <div class="upload-icon">📁</div>
+
+            <h2>Upload File For Analysis</h2>
+
+            <p>
+                Supported:
+                TXT • JS • PY • HTML • CPP • CSS • JSON • PS1 • BAT • VBS
+            </p>
+
+            <button class="upload-btn">
+                Select File
+            </button>
+
+            <input
+                type="file"
+                id="fileInput"
+                accept=".txt,.js,.py,.html,.cpp,.css,.json,.ps1,.bat,.vbs"
+            >
+        </div>
+
+    </section>
+
+    <!-- Loading -->
+
+    <section id="loadingSection" class="loading-section hidden">
+
+        <div class="loader"></div>
+
+        <h2>Analyzing File...</h2>
+
+        <p>
+            Hashing • Entropy Analysis • YARA • VirusTotal • Heuristics
+        </p>
+
+    </section>
+
+    <!-- Results -->
+
+    <section id="results" class="hidden">
+
+        <!-- Overview -->
+
+        <div id="statusCard" class="status-card">
+
+            <div id="statusIcon" class="status-icon">
+                ⚠️
+            </div>
+
+            <div>
+
+                <h2 id="statusTitle">
+                    Analysis Complete
+                </h2>
+
+                <p id="statusSub">
+                    Threat Assessment
+                </p>
+
+            </div>
+
+        </div>
+
+        <!-- Risk Meter -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+                Threat Score
+            </div>
+
+            <div class="risk-bar-container">
+                <div id="riskBar"></div>
+            </div>
+
+            <div class="risk-labels">
+
+                <span>Clean</span>
+                <span>Low</span>
+                <span>Medium</span>
+                <span>High</span>
+                <span>Critical</span>
+
+            </div>
+
+        </div>
+
+        <!-- Metrics -->
+
+        <div class="metrics-grid">
+
+            <div class="metric-card">
+                <div class="metric-label">Risk Score</div>
+                <div class="metric-value" id="metricScore">0</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Confidence</div>
+                <div class="metric-value" id="metricConfidence">0%</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Entropy</div>
+                <div class="metric-value" id="metricEntropy">0</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Findings</div>
+                <div class="metric-value" id="metricFindings">0</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Scan Time</div>
+                <div class="metric-value" id="metricScanTime">0s</div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-label">Entropy Chunks</div>
+                <div class="metric-value" id="metricChunks">0</div>
+            </div>
+
+        </div>
+
+        <!-- Threat Intel -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+                Threat Intelligence
+            </div>
+
+            <div id="virustotalPanel">
+
+                <div class="empty-state">
+                    No VirusTotal Data
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- YARA -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+                YARA Detections
+            </div>
+
+            <div id="yaraContainer">
+
+                <div class="empty-state">
+                    No YARA Matches
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Suspicious Lines -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+                Suspicious Code
+            </div>
+
+            <div id="suspiciousLines">
+
+                <div class="empty-state">
+                    No Suspicious Lines Found
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Indicators -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+                Keywords Detected
+            </div>
+
+            <div id="keywordItems"></div>
+
+        </div>
+
+        <div class="panel">
+
+            <div class="panel-title">
+                Pattern Matches
+            </div>
+
+            <div id="patternItems"></div>
+
+        </div>
+
+        <!-- URLs -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+                URLs Found
+            </div>
+
+            <div id="urlContainer">
+
+                <div class="empty-state">
+                    No URLs Detected
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- IPs -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+                IP Addresses
+            </div>
+
+            <div id="ipContainer">
+
+                <div class="empty-state">
+                    No IP Addresses Detected
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- File Metadata -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+                File Metadata
+            </div>
+
+            <div class="metadata-grid">
+
+                <div class="meta-item">
+                    <span>SHA256</span>
+                    <code id="hashValue"></code>
+                </div>
+
+                <div class="meta-item">
+                    <span>Risk Level</span>
+                    <strong id="riskLevel"></strong>
+                </div>
+
+            </div>
+
+            <div class="button-row">
+
+                <button id="copyHashBtn">
+                    Copy Hash
+                </button>
+
+                <button id="exportBtn">
+                    Export Report
+                </button>
+
+            </div>
+
+        </div>
+
+        <!-- Timeline -->
+
+        <div class="panel">
+
+            <div class="panel-title">
+                Scan Timeline
+            </div>
+
+            <div class="timeline">
+
+                <div class="timeline-item">
+                    ✓ File Loaded
+                </div>
+
+                <div class="timeline-item">
+                    ✓ Hash Generated
+                </div>
+
+                <div class="timeline-item">
+                    ✓ Entropy Analysis
+                </div>
+
+                <div class="timeline-item">
+                    ✓ Pattern Detection
+                </div>
+
+                <div class="timeline-item">
+                    ✓ Threat Classification
+                </div>
+
+            </div>
+
+        </div>
+
+    </section>
+
 </div>
 
-<div id="results">
-<div id="statusCard" class="status-card">
-<div id="statusIcon"></div>
-<div>
-<div id="statusTitle"></div>
-<div id="statusSub"></div>
-</div>
-</div>
+<script src="{{ url_for('static', filename='script.js') }}"></script>
 
-<div class="risk-container">
-<div id="riskBar"></div>
-</div>
-
-<div class="metrics">
-<div class="metric"><div class="label">Risk</div><div class="value" id="metricScore">0</div></div>
-<div class="metric"><div class="label">Entropy</div><div class="value" id="metricEntropy">0</div></div>
-<div class="metric"><div class="label">Findings</div><div class="value" id="metricFindings">0</div></div>
-<div class="metric"><div class="label">Confidence</div><div class="value" id="metricConfidence">0%</div></div>
-</div>
-
-<div id="entropyWarning"></div>
-
-<div class="section-title">Scan Timeline</div>
-<div class="timeline">
-<div class="step">✓ File Loaded</div>
-<div class="step">✓ Hash Calculated</div>
-<div class="step">✓ Entropy Analysis</div>
-<div class="step">✓ Pattern Scan</div>
-<div class="step">✓ Threat Assessment</div>
-</div>
-
-<div class="section-title">Keywords</div>
-<div id="keywordItems"></div>
-
-<div class="section-title">Patterns</div>
-<div id="patternItems"></div>
-
-<div class="hash-box">
-SHA256: <span id="hashValue"></span>
-</div>
-
-<button class="reset" onclick="location.reload()">Scan Another File</button>
-</div>
-</div>
-
-<script>
-const API_URL = 'https://cybershield-5h5x.onrender.com/scan';
-
-const riskWidth={clean:5,low:25,medium:55,high:85,critical:100};
-const riskColor={clean:"#22c55e",low:"#eab308",medium:"#f97316",high:"#ef4444",critical:"#dc2626"};
-
-fileInput.onchange=()=>handleFile(fileInput.files[0]);
-
-async function handleFile(file){
-document.getElementById("results").style.display="block";
-
-const fd=new FormData();
-fd.append("file",file);
-
-const res=await fetch(API_URL,{method:"POST",body:fd});
-const result=await res.json();
-
-showResults(result);
-}
-
-function animate(id,val){
-let c=0;
-const t=setInterval(()=>{
-c++;
-document.getElementById(id).textContent=id==="metricConfidence"?c+"%":c;
-if(c>=val) clearInterval(t);
-},15);
-}
-
-function showResults(result){
-
-const total=result.found_keywords.length+result.found_patterns.length;
-
-animate("metricScore",result.score);
-animate("metricFindings",total);
-document.getElementById("metricEntropy").textContent=result.entropy;
-
-const conf=Math.min(100,result.score*8);
-animate("metricConfidence",conf);
-
-const risk=result.risk_level;
-
-riskBar.style.width=riskWidth[risk]+"%";
-riskBar.style.background=riskColor[risk];
-
-statusCard.className="status-card "+risk;
-
-if(result.entropy>7.5){
-entropyWarning.innerHTML='<div class="warning">⚠ High entropy detected. Possible obfuscation or encrypted payload.</div>';
-}
-
-hashValue.textContent=result.hash;
-
-keywordItems.innerHTML='';
-(result.found_keywords||[]).forEach(k=>{
-const d=document.createElement("div");
-let sev='low';
-if(result.score>10) sev='high';
-else if(result.score>5) sev='medium';
-d.className='flag-item '+sev+'-risk';
-d.innerHTML='<span class="badge '+sev+'">'+sev.toUpperCase()+'</span>'+k;
-keywordItems.appendChild(d);
-});
-
-patternItems.innerHTML='';
-(result.found_patterns||[]).forEach(p=>{
-const d=document.createElement("div");
-d.className='flag-item pattern';
-d.textContent='⚑ '+p;
-patternItems.appendChild(d);
-});
-}
-</script>
 </body>
 </html>
