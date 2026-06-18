@@ -185,12 +185,19 @@ def save_cache(cache):
 # VT LOOKUP
 # =====================================================
 
+# =====================================================
+# VT LOOKUP
+# =====================================================
+
 def vt_lookup(file_hash):
 
     if not VT_API_KEY:
         return {
             "status": "disabled",
-            "message": "VirusTotal API key not configured"
+            "message": "VirusTotal API key not configured",
+            "malicious": 0,
+            "suspicious": 0,
+            "harmless": 0
         }
 
     cache = load_cache()
@@ -213,12 +220,9 @@ def vt_lookup(file_hash):
         )
 
         print("VT STATUS:", response.status_code)
-        print("VT RESPONSE:", response.text[:1000])
+        print("VT RESPONSE:", response.text[:500])
 
-        # -----------------------------
-        # HASH NOT FOUND
-        # -----------------------------
-
+        # File not known by VirusTotal
         if response.status_code == 404:
 
             result = {
@@ -234,23 +238,16 @@ def vt_lookup(file_hash):
 
             return result
 
-        # -----------------------------
-        # API ERROR
-        # -----------------------------
-
+        # API errors
         if response.status_code != 200:
 
             return {
                 "status": "error",
-                "message": f"VirusTotal returned HTTP {response.status_code}",
+                "message": f"VirusTotal HTTP {response.status_code}",
                 "malicious": 0,
                 "suspicious": 0,
                 "harmless": 0
             }
-
-        # -----------------------------
-        # SUCCESS
-        # -----------------------------
 
         data = response.json()
 
@@ -258,14 +255,13 @@ def vt_lookup(file_hash):
 
         result = {
             "status": "found",
-            "message": "Hash found in VirusTotal",
+            "message": "VirusTotal reputation available",
             "malicious": stats.get("malicious", 0),
             "suspicious": stats.get("suspicious", 0),
             "harmless": stats.get("harmless", 0)
         }
 
         cache[file_hash] = result
-
         save_cache(cache)
 
         return result
@@ -521,6 +517,11 @@ def scan():
 }
     for match in yara_matches:
         score += YARA_SEVERITY.get(match, 5)
+    if vt_result:
+
+        score += vt_result.get("malicious", 0) * 4
+
+        score += vt_result.get("suspicious", 0) * 2
 
     risk_level = get_risk(
         score,
