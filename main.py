@@ -208,6 +208,8 @@ def vt_lookup(file_hash):
             headers=headers,
             timeout=10
         )
+        print("VT RESPONSE:", response.json())
+        
 
         if response.status_code != 200:
             return None
