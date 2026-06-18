@@ -466,7 +466,7 @@ def scan():
     "SuspiciousHTML": 8
 }
     for match in yara_matches:
-    score += YARA_SEVERITY.get(match, 5)
+        score += YARA_SEVERITY.get(match, 5)
 
     risk_level = get_risk(
         score,
