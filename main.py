@@ -227,7 +227,8 @@ def vt_lookup(file_hash):
 
             result = {
                 "status": "unknown",
-                "message": "Hash not found in VirusTotal database",
+                "message": "File not present in VirusTotal database",
+                "known": False,
                 "malicious": 0,
                 "suspicious": 0,
                 "harmless": 0
@@ -256,10 +257,11 @@ def vt_lookup(file_hash):
         result = {
             "status": "found",
             "message": "VirusTotal reputation available",
+            "known": True,
             "malicious": stats.get("malicious", 0),
             "suspicious": stats.get("suspicious", 0),
             "harmless": stats.get("harmless", 0)
-        }
+            }
 
         cache[file_hash] = result
         save_cache(cache)
