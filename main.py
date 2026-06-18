@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
 import hashlib
 import math
@@ -8,16 +8,11 @@ from collections import Counter
 app = Flask(__name__)
 CORS(app)
 
-ALLOWED_EXTENSIONS = {'.txt', '.js', '.py', '.html'}
+ALLOWED_EXTENSIONS = {'.txt', '.js', '.py', '.html', '.cpp'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
-# Known malware hashes (SHA256) - add more from MalwareBazaar
-KNOWN_HASHES = set([
-    # Add known malware hashes here as strings
-    # "abc123...",
-])
+KNOWN_HASHES = set([])
 
-# Keywords with severity levels
 HIGH_RISK = [
     "ransomware", "exploit", "shellcode", "rootkit", "backdoor",
     "keylogger", "cryptominer", "dropper", "rat", "botnet",
@@ -48,7 +43,6 @@ LOW_RISK = [
     "registry", "reg add", "schtasks", "startup", "runonce"
 ]
 
-# Regex patterns for deeper detection
 PATTERNS = [
     (r'eval\s*\(', "eval() call", "high"),
     (r'base64_decode\s*\(', "base64_decode call", "high"),
@@ -87,7 +81,6 @@ def get_severity_score(found_keywords, found_patterns):
             score += 2
         elif k in LOW_RISK:
             score += 1
-
     for _, _, severity in found_patterns:
         if severity == "high":
             score += 3
@@ -95,7 +88,6 @@ def get_severity_score(found_keywords, found_patterns):
             score += 2
         elif severity == "low":
             score += 1
-
     return score
 
 
@@ -111,6 +103,11 @@ def get_risk_level(score, entropy, hash_match):
     return "clean"
 
 
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+
 @app.route('/scan', methods=['POST'])
 def scan():
     if 'file' not in request.files:
@@ -118,37 +115,28 @@ def scan():
 
     file = request.files['file']
 
-    # File type check
     ext = '.' + file.filename.rsplit('.', 1)[-1].lower()
     if ext not in ALLOWED_EXTENSIONS:
         return jsonify({"error": "Unsupported file type"}), 400
 
-    # File size check
     content_bytes = file.read()
     if len(content_bytes) > MAX_FILE_SIZE:
         return jsonify({"error": "File too large (max 5MB)"}), 400
 
-    # Hash check
     file_hash = get_hash(content_bytes)
     hash_match = file_hash in KNOWN_HASHES
 
-    # Decode content
     content = content_bytes.decode('utf-8', errors='ignore').lower()
-
-    # Entropy analysis
     entropy = round(calculate_entropy(content), 2)
 
-    # Keyword scanning
     all_keywords = HIGH_RISK + MEDIUM_RISK + LOW_RISK
     found_keywords = [k for k in all_keywords if k.lower() in content]
 
-    # Regex pattern scanning
     found_patterns = []
     for pattern, label, severity in PATTERNS:
         if re.search(pattern, content):
             found_patterns.append((pattern, label, severity))
 
-    # Scoring
     score = get_severity_score(found_keywords, found_patterns)
     risk_level = get_risk_level(score, entropy, hash_match)
 
@@ -167,4 +155,4 @@ def scan():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=False)
